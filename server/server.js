@@ -10,7 +10,7 @@ var {User} = require('./models/user');
 var app = express();
 app.use(bodyParser.json());
 
-app.post('/', (req, res)=>{
+app.post('/todos', (req, res)=>{
     var todo = new Todo({
         text:req.body.text
     });
