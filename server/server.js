@@ -7,8 +7,11 @@ var {mongoose} = require('./db/mongoose') // identical to the line 1
 var {Todo}= require('./models/todo');
 var {User} = require('./models/user');
 
-
 var app = express();
+
+//assigning port for heroku
+const port = process.env.PORT||3000;
+
 app.use(bodyParser.json());//to coordinate with the requests in json way
 
 //POST request
@@ -35,7 +38,7 @@ app.get('/todos', (req, res)=>{
 
 
 
-//Passing into the params
+//getting the todo by passing id
 app.get('/todos/:id', (req,res)=>{
   var id = req.params.id;
 
@@ -56,10 +59,38 @@ app.get('/todos/:id', (req,res)=>{
   });
 });
 
-
-app.listen(3000, ()=>{
-    console.log("server is up at port:3000");
+//deleting id by id
+app.delete('/todos/:id', (req,res)=>{
+  id = req.params.id;
+  if(!ObjectID.isValid(id)){
+    return res.status(404).send();
+  }
+  Todo.findByIdAndRemove(id).then((todo)=>{
+    if(!todo){
+      res.status(404).send();
+    }
+    res.send({todo});
+  }).catch((e)=>{
+    res.status(400).send();
+  });
 });
+
+
+app.listen(port, ()=>{
+    console.log(`server is up at port: ${port}`);
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
