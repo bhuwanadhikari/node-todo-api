@@ -40,7 +40,7 @@ app.get('/todos', (req, res)=>{
 
 
 
-//getting the todo by passing id
+// getting the todo by passing id
 app.get('/todos/:id', (req,res)=>{
   var id = req.params.id;
 
@@ -113,9 +113,11 @@ app.post('/users',(req, res)=>{
   var user = new User(body); // passing body to the constructor function as body is already ready to used
 
 
-  user.save().then((user)=>{
-  res.status(200).send({user});
-}).catch((e)=>{
+  user.save().then(()=>{ //  like then((user)=>{}) i.e then takes user as arg which is same as above declared
+      return user.generateAuthToken();
+}).then((token) => {
+  res.header('x-auth', token).json(user);
+  }).catch((e)=>{
   res.status(400).send(e);
 });
 });
