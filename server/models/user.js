@@ -37,16 +37,18 @@ var UserSchema = new mongoose.Schema({
  } // end of object inside schema
 ); // end of UserSchema call
 
+
 //taking only the email and password to send to the client
 UserSchema.methods.toJSON = function () {
     var user = this;
     var userObject = user.toObject();
     return _.pick(userObject, ['email', 'password']);
-}
+};
+
 
 // assigning a method to generate auth token using simple function to use this keyword
 UserSchema.methods.generateAuthToken = function(){
-    var user = this;
+    var user = this;  // this is individual user so has small 'u'
     var access = 'auth';
     var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString(); // getting back the string token
 
@@ -57,6 +59,27 @@ UserSchema.methods.generateAuthToken = function(){
     });
     // -------------------------------------------------------------------
 };
+
+// find the user from the collection by token
+// this can be done by setting user defined function in the statics objects of the UserSchema model
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded;
+
+  try{
+    decoded = jwt.verify(token, 'abc123');
+  }catch(e) {
+      return Promise.reject();
+
+  }
+  return User.findOne({
+      '_id': decoded._id,
+      'tokens.token': token,
+      'tokens.access': 'auth',
+
+  });
+};
+
 
 // modelling from the UserSchema as User as the name of model
 var User = mongoose.model('User' , UserSchema, ); //Remember we also specified dbname in angular project and here is not

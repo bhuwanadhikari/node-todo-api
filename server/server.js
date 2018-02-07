@@ -8,6 +8,7 @@ const {ObjectID} = require('mongodb');
 const {mongoose} = require('./db/mongoose') // identical to the line 1
 const {Todo}= require('./models/todo');
 const {User} = require('./models/user');
+const {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 
@@ -37,8 +38,6 @@ app.get('/todos', (req, res)=>{
     res.status(400).send(e);
   });
 });
-
-
 
 // getting the todo by passing id
 app.get('/todos/:id', (req,res)=>{
@@ -106,7 +105,7 @@ app.patch('/todos/:id', (req, res)=>{
 });
 
 // signup for the users
-app.post('/users',(req, res)=>{
+app.post('/users',(req, res) => {
 
   //picking the userinfo from the input
   var body = _.pick(req.body, ['email', 'password']);
@@ -122,26 +121,15 @@ app.post('/users',(req, res)=>{
 });
 });
 
-
+// Private get request to get data of a user
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 
 app.listen(port, ()=>{
     console.log(`server is up at port: ${port}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
