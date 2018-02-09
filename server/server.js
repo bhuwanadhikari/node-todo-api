@@ -15,7 +15,9 @@ var app = express();
 //assigning port for heroku
 const port = process.env.PORT||3000;
 
+
 app.use(bodyParser.json());//to coordinate with the requests in json way
+
 
 //POST request
 app.post('/todos', (req, res)=>{
@@ -30,6 +32,7 @@ app.post('/todos', (req, res)=>{
     });
 });
 
+
 //GET request
 app.get('/todos', (req, res)=>{
   Todo.find().then((todos)=>{
@@ -38,6 +41,7 @@ app.get('/todos', (req, res)=>{
     res.status(400).send(e);
   });
 });
+
 
 // getting the todo by passing id
 app.get('/todos/:id', (req,res)=>{
@@ -60,6 +64,7 @@ app.get('/todos/:id', (req,res)=>{
   });
 });
 
+
 //deleting id by id
 app.delete('/todos/:id', (req,res)=>{
   id = req.params.id;
@@ -75,6 +80,7 @@ app.delete('/todos/:id', (req,res)=>{
     res.status(400).send();
   });
 });
+
 
 //Updating the Todos
 app.patch('/todos/:id', (req, res)=>{
@@ -104,6 +110,7 @@ app.patch('/todos/:id', (req, res)=>{
   });
 });
 
+
 // signup for the users
 app.post('/users',(req, res) => {
 
@@ -121,11 +128,26 @@ app.post('/users',(req, res) => {
 });
 });
 
+
 // Private get request to get data of a user
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
 });
 
+
+// Dedicated route to login in the user from existing user in the database
+app.post('/users/login', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+
+  User.findByCredentials(body.email, body.password).then((user) => {
+    return user.generateAuthToken().then((token) => {
+      res.header('x-auth', token).send(user);
+    });
+  }).catch((err) => {
+    res.status(400).send();
+  });
+
+});
 
 app.listen(port, ()=>{
     console.log(`server is up at port: ${port}`);

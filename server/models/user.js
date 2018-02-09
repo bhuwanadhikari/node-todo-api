@@ -88,8 +88,9 @@ UserSchema.statics.findByToken = function (token) {
 
 
 // hashing the password
-UserSchema.pre('save', function(next) { // .pre lets to fire a function to the User doc before the event 'save' happens and  function shold have next as arg
-    // next arg is because in middleware it should has it as a parameter
+// .pre lets to fire a function to the User doc before the event 'save' happens and  function should have next as arg
+// next arg is because in middleware it should has it as a parameter
+UserSchema.pre('save', function(next) {
     var user = this;
 
     if(user.isModified('password')){
@@ -103,6 +104,29 @@ UserSchema.pre('save', function(next) { // .pre lets to fire a function to the U
         next();
     }
 });
+
+
+
+// for logging in to the site
+UserSchema.statics.findByCredentials = function(email, password) {
+  var User = this;
+  return  User.findOne({email: email}).then((user) => {
+      if(!user){
+          return Promise.reject(); // directly calls the catch call in server.js
+      }
+
+      return new Promise((resolve, reject) => {
+        bcrypt.compare(password, user.password, (err, res) => {
+            if(res){
+                resolve(user); // will be resolved if res is true that means password matches
+            } else{
+                reject();
+            }
+        });
+      });
+  });
+
+};
 
 
 // modelling from the UserSchema as User as the name of model
