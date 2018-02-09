@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator'); // used to valid the models
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 
 // Setting up the Schema which is just as the model 'User' which accepts a object
@@ -38,12 +39,14 @@ var UserSchema = new mongoose.Schema({
 ); // end of UserSchema call
 
 
+
 //taking only the email and password to send to the client
 UserSchema.methods.toJSON = function () {
     var user = this;
     var userObject = user.toObject();
     return _.pick(userObject, ['email', 'password']);
 };
+
 
 
 // assigning a method to generate auth token using simple function to use this keyword
@@ -59,6 +62,8 @@ UserSchema.methods.generateAuthToken = function(){
     });
     // -------------------------------------------------------------------
 };
+
+
 
 // find the user from the collection by token
 // this can be done by setting user defined function in the statics objects of the UserSchema model
@@ -79,6 +84,25 @@ UserSchema.statics.findByToken = function (token) {
 
   });
 };
+
+
+
+// hashing the password
+UserSchema.pre('save', function(next) { // .pre lets to fire a function to the User doc before the event 'save' happens and  function shold have next as arg
+    // next arg is because in middleware it should has it as a parameter
+    var user = this;
+
+    if(user.isModified('password')){
+        bcrypt.genSalt(10, (err, salt) => { // 10 is no of rounds in generating the salt
+            bcrypt.hash(user.password, salt, (err, hash) =>{ // error in callback is passed at the first
+                user.password = hash;
+                next();
+            });
+        });
+    }else{
+        next();
+    }
+});
 
 
 // modelling from the UserSchema as User as the name of model
